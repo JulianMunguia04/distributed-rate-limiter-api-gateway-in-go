@@ -1,8 +1,8 @@
 # 🌐 Distributed Rate Limiter + API Gateway in Go
 
-A production-grade, horizontally scalable API Gateway built in Go, featuring pluggable load balancing, distributed rate limiting, middleware architecture, Prometheus observability, and high-concurrency performance engineering.
+A high-performance API Gateway built in Go to explore concurrency, distributed coordination, and backend engineering at scale. Designed with pluggable load balancing, Redis-backed rate limiting, middleware architecture, Prometheus observability, and high-concurrency performance.  
 
-This project is designed to deeply explore concurrency, distributed coordination, and high-performance backend systems — not just framework usage.
+Perfect for engineers looking to deeply understand production-grade backend systems, scaling, and reliability.
 
 ---
 
@@ -13,58 +13,51 @@ This project is designed to deeply explore concurrency, distributed coordination
 ![Docker](https://img.shields.io/badge/Docker-2496ED?logo=docker&logoColor=white&style=for-the-badge)
 ![Prometheus](https://img.shields.io/badge/Prometheus-E6522C?logo=prometheus&logoColor=white&style=for-the-badge)
 ![YAML](https://img.shields.io/badge/YAML-000000?logo=yaml&logoColor=white&style=for-the-badge)
-![Git](https://img.shields.io/badge/Git-F05032?logo=git&logoColor=white&style=for-the-badge)
 ![Linux](https://img.shields.io/badge/Linux-FCC624?logo=linux&logoColor=black&style=for-the-badge)
+![Git](https://img.shields.io/badge/Git-F05032?logo=git&logoColor=white&style=for-the-badge)
 
 ---
 
-## 🚀 Features
+## 🎯 Features
 
-- 🔁 High-performance reverse proxy
+- 🔁 Reverse proxy with header propagation and timeout handling
 - ⚖️ Pluggable load balancing (Round Robin, Least Connections)
-- 🧮 Distributed rate limiting (In-memory + Redis-backed)
-- 🧵 Concurrency-safe architecture
+- 🧮 Distributed rate limiting (Token Bucket + Sliding Window)
+- 🧵 Concurrency-safe architecture (Goroutines, Mutex, Atomic)
 - 📊 Prometheus metrics integration
 - 🛡 Middleware chain (Logging, Auth, Rate Limit, Recovery)
-- 🐳 Dockerized deployment
-- 🧪 Unit tests + Benchmarks
-- 📈 10k–15k+ requests/sec sustained locally under benchmark testing
+- 🐳 Dockerized deployment with `docker-compose`
+- 🧪 Unit tests + Benchmarks (`go test -bench`)
+- 📈 10k–15k+ requests/sec sustained under benchmark testing
 
 ---
 
-## 🎯 Project Objectives
+## 🛠 Local Setup
 
-Design and implement a production-grade API Gateway that includes:
+### 1. Clone Repository
+```bash
+git clone https://github.com/yourusername/go-api-gateway.git
+cd go-api-gateway
+```
 
-- Reverse proxying
-- Load balancing strategies
-- Distributed rate limiting
-- Observability & metrics
-- Fault tolerance mechanisms
-- Benchmarks & test coverage
-- Dockerized deployment
-- Clean, idiomatic Go architecture
+### 2. Run Server
+```bash
+go run main.go
+```
+Server will run at:
+```
+http://localhost:8080
+```
 
----
+### 3. Load Testing Example
+```bash
+ab -n 10000 -c 100 http://localhost:8080/
+```
+Where:
+- `-n` = total requests  
+- `-c` = concurrent requests
 
-## 🧰 Tech Stack
-
-### Core
-- Go (`net/http`)
-- Redis (rate limit coordination)
-- Docker
-- docker-compose
-
-### Observability
-- Prometheus metrics endpoint (`/metrics`)
-
-### Testing
-- `go test`
-- `go test -race`
-- Benchmarks (`go test -bench`)
-
-### Configuration
-- YAML parsing (`gopkg.in/yaml.v3`)
+> Works on **Windows**, **Linux**, and **Ubuntu**.
 
 ---
 
@@ -82,7 +75,7 @@ pkg/
 configs/
 ```
 
-Design Principles:
+Key principles:
 
 - No circular dependencies
 - Clean interfaces
@@ -99,7 +92,7 @@ Design Principles:
 - Preserve headers
 - Support timeouts
 - Graceful error handling
-- Handle concurrent requests safely
+- Concurrency-safe
 
 Target:
 - Sustain 10k+ requests/sec locally without crashing
@@ -108,21 +101,16 @@ Target:
 
 ## ⚖️ Load Balancing
 
-Strategies implemented:
-
 - Round Robin
 - Least Connections
 
-Designed as a pluggable interface:
-
+Pluggable interface:
 ```go
 type LoadBalancer interface {
     NextBackend() *Backend
 }
 ```
-
 Goals:
-
 - O(1) backend selection
 - Thread-safe
 - No global lock bottlenecks
@@ -132,101 +120,47 @@ Goals:
 ## 🧮 Distributed Rate Limiting
 
 Algorithms:
-
 - Token Bucket
-- (Optional) Sliding Window
+- Sliding Window (optional)
 
 Modes:
-
-- In-memory (single node)
+- In-memory (single-node)
 - Redis-backed (distributed)
 
 Goals:
-
 - Correct refill math
 - Accurate under concurrency
-- No race conditions
-- Support per-IP + per-route limits
-- Accurate limiting at 10k concurrent requests
+- Zero race conditions
+- Per-IP + per-route limits
 
 ---
 
-## 📊 Observability
-
-Expose a Prometheus-compatible `/metrics` endpoint.
-
-Track:
-
-- Request latency
-- Requests per second
-- Error rate
-- Backend health state
-
----
-
-## 🛡 Middleware Chain
-
-Implemented middleware:
-
-- Logging
-- Authentication (API key)
-- Rate limiting
-- Panic recovery
-
-Goals:
-
-- Extensible architecture
-- Clear separation of concerns
-- Clean and maintainable codebase
-
----
-
-## 🧵 Concurrency Guarantees
+## 🧵 Concurrency & Middleware
 
 - Goroutines per request
-- Proper use of `sync.Mutex`, `sync.RWMutex`, and `atomic`
-- Context cancellation support
+- Mutex / RWMutex and atomic operations
+- Context cancellation
 - Graceful shutdown
-- Zero data races (verified via `go test -race`)
-- No deadlocks
+- Middleware: Logging, Auth, Rate Limit, Recovery
 
 ---
 
 ## 🧪 Testing & Benchmarks
 
-Includes:
-
-- Unit tests (rate limiter, load balancer)
+- Unit tests (token bucket, load balancer)
 - Concurrency tests
 - Integration tests
-- Benchmarks using `go test -bench`
-
-Target:
-
-- 70%+ coverage
-- Documented benchmark results in README
+- Benchmark tests (`go test -bench`)
+- 70%+ code coverage goal
 
 ---
 
 ## 🐳 Deployment
 
-- Fully Dockerized
-- `docker-compose` with Redis
+- Dockerized
+- docker-compose with Redis
 - CI via GitHub Actions
-- Linting + `go vet`
-
-Optional:
-- Kubernetes deployment experiments
-
----
-
-## 📈 Performance Metrics (To Be Documented)
-
-- Max sustained RPS
-- P95 latency
-- CPU usage
-- Memory usage
-- System architecture diagram
+- Optional Kubernetes
 
 ---
 
@@ -236,12 +170,12 @@ Optional:
 - Reverse proxy
 - Round robin load balancing
 - In-memory rate limiter
-- Clean project structure
+- Clean architecture
 
 ### Week 2
 - Redis-backed rate limiter
 - Concurrency hardening
-- Unit tests + benchmarks
+- Tests + benchmarks
 
 ### Week 3
 - Consistent hashing
@@ -249,52 +183,37 @@ Optional:
 - Metrics integration
 
 ### Week 4
-- YAML configuration
+- YAML config
 - Docker setup
 - Load testing
-- Documentation polish
+- Documentation + polish
 
 ---
 
-## 🧠 Engineering Questions This Project Explores
+## 🧠 Learning Goals
 
-- Why token bucket over sliding window?
-- Why mutex instead of channel?
-- Tradeoffs of centralized Redis?
-- What happens under network partition?
-- How would this scale to 1M RPS?
-- What breaks first?
+- Deep Go concurrency mastery  
+- Reverse proxy & HTTP internals  
+- Token bucket math  
+- Load balancing strategies  
+- Circuit breaker pattern  
+- Distributed systems & Redis coordination  
+
+---
+
+## 🤝 Contributing
+
+1. Fork the repo  
+2. Create a feature branch  
+3. Implement changes  
+4. Add tests  
+5. Submit a pull request  
 
 ---
 
 ## 📍 Current Progress
 
 - Built basic HTTP server
-- Tested request concurrency using ApacheBench
-- Verified race conditions and synchronization
-- Set up Ubuntu environment for load testing
-
----
-
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Implement improvements
-4. Add tests
-5. Submit a pull request
-
----
-
-## 📚 Learning Goals
-
-- Deep Go concurrency mastery
-- Reverse proxy internals
-- Token bucket mathematics
-- Load balancing algorithms
-- Circuit breaker pattern
-- Distributed systems fundamentals
-
----
-
-This project is built to move from “coder” to “systems engineer.”
+- Tested concurrency with ApacheBench
+- Verified race conditions & atomic counters
+- Ubuntu environment setup for load testing
