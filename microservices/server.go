@@ -34,3 +34,5 @@ func main() {
 		log.Fatalf("Failed to start server: %v", err)
 	}
 }
+
+//go run server.go <port number>
