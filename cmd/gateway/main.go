@@ -6,9 +6,16 @@ import (
 
 	"gateway/internal/loadbalancer"
 	"gateway/internal/proxy"
+
+	"github.com/joho/godotenv"
 )
 
 func main() {
+
+	err := godotenv.Load()
+	if err != nil {
+		log.Println(".env file not found")
+	}
 
 	app1LB := loadbalancer.NewRoundRobin([]string{
 		"http://localhost:5000",
