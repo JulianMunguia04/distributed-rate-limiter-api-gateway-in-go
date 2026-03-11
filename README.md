@@ -1,8 +1,8 @@
 # 🌐 Distributed Rate Limiter + API Gateway in Go
 
-A high-performance API Gateway built in Go to explore concurrency, distributed coordination, and backend engineering at scale. Designed with pluggable load balancing, Redis-backed rate limiting, middleware architecture, Prometheus observability, and high-concurrency performance.  
+A high-performance, scalable API Gateway built in Go to explore concurrency, distributed coordination, and backend engineering at scale. Designed with pluggable load balancing, Redis-backed rate limiting, middleware architecture, Prometheus observability, and high-concurrency performance.  
 
-Perfect for engineers looking to deeply understand production-grade backend systems, scaling, and reliability.
+Perfect for engineers looking to deeply understand production-grade backend systems, scaling, containerization and reliability.
 
 ---
 
@@ -15,6 +15,8 @@ Perfect for engineers looking to deeply understand production-grade backend syst
 ![YAML](https://img.shields.io/badge/YAML-000000?logo=yaml&logoColor=white&style=for-the-badge)
 ![Linux](https://img.shields.io/badge/Linux-FCC624?logo=linux&logoColor=black&style=for-the-badge)
 ![Git](https://img.shields.io/badge/Git-F05032?logo=git&logoColor=white&style=for-the-badge)
+![Kubernetes](https://img.shields.io/badge/Kubernetes-326CE5?logo=kubernetes&logoColor=white&style=for-the-badge)
+
 
 ---
 
