@@ -5,13 +5,12 @@ import (
 	"os"
 )
 
-var apiKey = os.Getenv("API_KEY")
-
 func APIKeyAuth(next http.Handler) http.Handler {
 
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
-		key := r.Header.Get("X-API-KEY")
+		apiKey := os.Getenv("X_API_KEY")
+		key := r.Header.Get("X_API_KEY")
 
 		if key != apiKey {
 			http.Error(w, "Unauthorized", http.StatusUnauthorized)

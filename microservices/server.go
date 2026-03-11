@@ -19,6 +19,12 @@ func main() {
 	port := os.Args[1]
 
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		//Ignore favicon
+		if r.URL.Path == "/favicon.ico" {
+			http.NotFound(w, r)
+			return
+		}
+
 		mu.Lock()
 		counter++
 		current := counter

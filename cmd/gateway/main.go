@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"gateway/internal/loadbalancer"
+	"gateway/internal/middleware"
 	"gateway/internal/proxy"
 
 	"github.com/joho/godotenv"
@@ -12,9 +13,11 @@ import (
 
 func main() {
 
-	err := godotenv.Load()
+	err := godotenv.Load(".env")
 	if err != nil {
-		log.Println(".env file not found")
+		log.Println("Error loading .env:", err)
+	} else {
+		log.Println(".env loaded successfully")
 	}
 
 	app1LB := loadbalancer.NewRoundRobin([]string{
@@ -28,8 +31,28 @@ func main() {
 		"http://localhost:3001",
 	})
 
-	http.HandleFunc("/app1/", proxy.ProxyRequest(app1LB))
-	http.HandleFunc("/app2/", proxy.ProxyRequest(app2LB))
+	// reverse proxy
+	app1Handler := proxy.ProxyRequest(app1LB)
+	app2Handler := proxy.ProxyRequest(app2LB)
+
+	// middleware for app1 (no auth)
+	app1Middleware := middleware.Chain(
+		app1Handler,
+		middleware.Logging,
+		middleware.Recovery,
+		middleware.RateLimit,
+	)
+
+	app2Middleware := middleware.Chain(
+		app2Handler,
+		middleware.Logging,
+		middleware.Recovery,
+		middleware.APIKeyAuth,
+		middleware.RateLimit,
+	)
+
+	http.Handle("/app1/", app1Middleware)
+	http.Handle("/app2/", app2Middleware)
 
 	log.Println("Gateway running on :8080")
 
