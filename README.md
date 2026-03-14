@@ -24,7 +24,7 @@ Perfect for engineers looking to deeply understand production-grade backend syst
 
 - 🔁 Reverse proxy with header propagation and timeout handling
 - ⚖️ Pluggable load balancing (Round Robin, Least Connections)
-- 🧮 Distributed rate limiting (Token Bucket + Sliding Window)
+- 🧮 Distributed rate limiting (Token Bucket)
 - 🧵 Concurrency-safe architecture (Goroutines, Mutex, Atomic)
 - 📊 Prometheus metrics integration
 - 🛡 Middleware chain (Logging, Auth, Rate Limit, Recovery)
