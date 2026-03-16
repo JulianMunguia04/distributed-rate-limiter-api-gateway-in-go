@@ -3,6 +3,7 @@ package middleware
 import (
 	"net"
 	"net/http"
+	"time"
 
 	"gateway/internal/ratelimiter"
 )
@@ -13,14 +14,18 @@ func RateLimit(next http.Handler) http.Handler {
 
 		ip, _, err := net.SplitHostPort(r.RemoteAddr)
 		if err != nil {
-			http.Error(w, "Unable to determine IP", http.StatusInternalServerError)
+			http.Error(w, "IP error", http.StatusInternalServerError)
 			return
 		}
 
-		bucket := ratelimiter.GetBucket(ip)
+		allowed, err := ratelimiter.AllowRequest(ip, 100, time.Minute)
+		if err != nil {
+			http.Error(w, "Rate limiter error", http.StatusInternalServerError)
+			return
+		}
 
-		if !bucket.Allow() {
-			http.Error(w, "Rate limit exceeded", http.StatusTooManyRequests)
+		if !allowed {
+			http.Error(w, "Too Many Requests", http.StatusTooManyRequests)
 			return
 		}
 
