@@ -9,9 +9,12 @@ import (
 	"gateway/internal/proxy"
 
 	"github.com/joho/godotenv"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
 func main() {
+
+	http.Handle("/metrics", promhttp.Handler())
 
 	err := godotenv.Load(".env")
 	if err != nil {
@@ -38,6 +41,7 @@ func main() {
 	// middleware for app1 (no auth)
 	app1Middleware := middleware.Chain(
 		app1Handler,
+		middleware.Metrics,
 		middleware.Logging,
 		middleware.Recovery,
 		middleware.RateLimit,
@@ -45,6 +49,7 @@ func main() {
 
 	app2Middleware := middleware.Chain(
 		app2Handler,
+		middleware.Metrics,
 		middleware.Logging,
 		middleware.Recovery,
 		middleware.APIKeyAuth,
