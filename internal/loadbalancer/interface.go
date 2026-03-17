@@ -1,9 +1,12 @@
 package loadbalancer
 
-import "net/url"
+import (
+	"net/url"
+)
 
 type Backend struct {
-	URL *url.URL
+	URL         *url.URL
+	Connections int64
 }
 
 type LoadBalancer interface {

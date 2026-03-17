@@ -42,3 +42,7 @@ func main() {
 }
 
 //go run server.go <port number>
+
+//or go build -o server.exe server.go
+//then
+//.\server.exe <port number>
