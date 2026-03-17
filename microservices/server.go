@@ -5,37 +5,50 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strconv"
 	"sync"
+	"time"
 )
 
 var counter int
 var mu sync.Mutex
 
 func main() {
-	if len(os.Args) < 2 {
-		log.Fatal("Please provide a port number. Example: go run server.go 5000")
+	if len(os.Args) < 3 {
+		log.Fatal("Usage: go run server.go <port> <delay_in_seconds>")
 	}
 
 	port := os.Args[1]
 
+	// Convert delay argument to integer
+	delaySeconds, err := strconv.Atoi(os.Args[2])
+	if err != nil {
+		log.Fatal("Delay must be a number (seconds)")
+	}
+
+	delay := time.Duration(delaySeconds) * time.Second
+
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		//Ignore favicon
+		// Ignore favicon
 		if r.URL.Path == "/favicon.ico" {
 			http.NotFound(w, r)
 			return
 		}
+
+		// Delay
+		time.Sleep(delay)
 
 		mu.Lock()
 		counter++
 		current := counter
 		mu.Unlock()
 
-		fmt.Fprintf(w, "Instance running on port %s | Count: %d\n", port, current)
+		fmt.Fprintf(w, "Instance running on port %s | Count: %d | Delay: %ds\n", port, current, delaySeconds)
 	})
 
-	log.Println("Starting server on port", port)
+	log.Println("Starting server on port", port, "with delay", delaySeconds, "seconds")
 
-	err := http.ListenAndServe(":"+port, nil)
+	err = http.ListenAndServe(":"+port, nil)
 	if err != nil {
 		log.Fatalf("Failed to start server: %v", err)
 	}
@@ -43,6 +56,6 @@ func main() {
 
 //go run server.go <port number>
 
-//or go build -o server.exe server.go
-//then
-//.\server.exe <port number>
+// or go build -o server.exe server.go
+// then
+// .\server.exe <port number> <delay>

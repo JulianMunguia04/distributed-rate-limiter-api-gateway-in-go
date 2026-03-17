@@ -1,6 +1,7 @@
 package proxy
 
 import (
+	"log"
 	"net/http"
 	"net/http/httputil"
 	"sync/atomic"
@@ -27,6 +28,8 @@ func ProxyRequest(lb loadbalancer.LoadBalancer) http.HandlerFunc {
 			atomic.AddInt64(&backend.Connections, -1)
 			http.Error(w, "Service unavailable", http.StatusServiceUnavailable)
 		}
+
+		log.Println("Forwarding request to:", backend.URL)
 
 		proxy.ServeHTTP(w, r)
 	}

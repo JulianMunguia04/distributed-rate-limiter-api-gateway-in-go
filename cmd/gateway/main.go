@@ -23,13 +23,13 @@ func main() {
 		log.Println(".env loaded successfully")
 	}
 
-	app1LB := loadbalancer.NewRoundRobin([]string{
+	app1LB := loadbalancer.NewLeastConnections([]string{
 		"http://localhost:5000",
 		"http://localhost:5001",
 		"http://localhost:5002",
 	})
 
-	app2LB := loadbalancer.NewRoundRobin([]string{
+	app2LB := loadbalancer.NewLeastConnections([]string{
 		"http://localhost:3000",
 		"http://localhost:3001",
 	})
