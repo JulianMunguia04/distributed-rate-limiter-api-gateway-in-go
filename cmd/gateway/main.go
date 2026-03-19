@@ -1,9 +1,11 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 
+	"gateway/internal/config"
 	"gateway/internal/loadbalancer"
 	"gateway/internal/middleware"
 	"gateway/internal/proxy"
@@ -16,50 +18,73 @@ func main() {
 
 	http.Handle("/metrics", promhttp.Handler())
 
+	// Load environment variables
 	err := godotenv.Load(".env")
 	if err != nil {
 		log.Println("Error loading .env:", err)
-	} else {
-		log.Println(".env loaded successfully")
 	}
 
-	app1LB := loadbalancer.NewLeastConnections([]string{
-		"http://localhost:5000",
-		"http://localhost:5001",
-		"http://localhost:5002",
-	})
+	// Load YAML config
+	cfg, err := config.LoadConfig("configs/config.yaml")
+	if err != nil {
+		log.Fatalf("failed to load config: %v", err)
+	}
 
-	app2LB := loadbalancer.NewLeastConnections([]string{
-		"http://localhost:3000",
-		"http://localhost:3001",
-	})
+	handlers := make(map[string]http.Handler)
 
-	// reverse proxy
-	app1Handler := proxy.ProxyRequest(app1LB)
-	app2Handler := proxy.ProxyRequest(app2LB)
+	// Loop through services
+	for _, svc := range cfg.Services {
 
-	// middleware for app1 (no auth)
-	app1Middleware := middleware.Chain(
-		app1Handler,
-		middleware.Metrics,
-		middleware.Logging,
-		middleware.Recovery,
-		middleware.RateLimit,
-	)
+		// Create load balancer
+		lb := loadbalancer.NewLeastConnections(svc.Backends)
 
-	app2Middleware := middleware.Chain(
-		app2Handler,
-		middleware.Metrics,
-		middleware.Logging,
-		middleware.Recovery,
-		middleware.APIKeyAuth,
-		middleware.RateLimit,
-	)
+		// Reverse proxy handler
+		handler := proxy.ProxyRequest(lb)
 
-	http.Handle("/app1/", app1Middleware)
-	http.Handle("/app2/", app2Middleware)
+		var finalHandler http.Handler
 
-	log.Println("Gateway running on :8080")
+		// Apply middleware
+		switch svc.Name {
+		case "app1":
+			finalHandler = middleware.Chain(
+				handler,
+				middleware.Metrics,
+				middleware.Logging,
+				middleware.Recovery,
+				middleware.RateLimit,
+			)
+		case "app2":
+			finalHandler = middleware.Chain(
+				handler,
+				middleware.Metrics,
+				middleware.Logging,
+				middleware.Recovery,
+				middleware.APIKeyAuth,
+				middleware.RateLimit,
+			)
+		default:
+			// Fallback if a service is added but no middleware defined yet
+			finalHandler = middleware.Chain(
+				handler,
+				middleware.Metrics,
+				middleware.Logging,
+				middleware.Recovery,
+			)
+			log.Printf("Warning: No specific middleware defined for service %s", svc.Name)
+		}
 
-	log.Fatal(http.ListenAndServe(":8080", nil))
+		handlers[svc.Name] = finalHandler
+	}
+
+	// Register routes dynamically
+	for name, handler := range handlers {
+		route := "/" + name + "/"
+		log.Println("Registering route:", route)
+		http.Handle(route, handler)
+	}
+
+	addr := ":" + fmt.Sprint(cfg.Port)
+
+	log.Println("Gateway running on", addr)
+	log.Fatal(http.ListenAndServe(addr, nil))
 }
