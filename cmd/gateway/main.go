@@ -15,17 +15,18 @@ import (
 )
 
 func main() {
-
+	// Metrics endpoint
 	http.Handle("/metrics", promhttp.Handler())
 
-	// Load environment variables
-	err := godotenv.Load(".env")
-	if err != nil {
+	// Load .env
+	if err := godotenv.Load(".env"); err != nil {
 		log.Println("Error loading .env:", err)
+	} else {
+		log.Println(".env loaded successfully")
 	}
 
 	// Load YAML config
-	cfg, err := config.LoadConfig("configs/config.yaml")
+	cfg, err := config.LoadConfig("config.yaml")
 	if err != nil {
 		log.Fatalf("failed to load config: %v", err)
 	}
@@ -35,7 +36,7 @@ func main() {
 	// Loop through services
 	for _, svc := range cfg.Services {
 
-		// Create load balancer
+		// Create load balancer per service
 		lb := loadbalancer.NewLeastConnections(svc.Backends)
 
 		// Reverse proxy handler
@@ -43,17 +44,9 @@ func main() {
 
 		var finalHandler http.Handler
 
-		// Apply middleware
-		switch svc.Name {
-		case "app1":
-			finalHandler = middleware.Chain(
-				handler,
-				middleware.Metrics,
-				middleware.Logging,
-				middleware.Recovery,
-				middleware.RateLimit,
-			)
-		case "app2":
+		// Middleware chain (dynamic based on auth_required)
+		switch svc.AuthRequired {
+		case true:
 			finalHandler = middleware.Chain(
 				handler,
 				middleware.Metrics,
@@ -63,14 +56,13 @@ func main() {
 				middleware.RateLimit,
 			)
 		default:
-			// Fallback if a service is added but no middleware defined yet
 			finalHandler = middleware.Chain(
 				handler,
 				middleware.Metrics,
 				middleware.Logging,
 				middleware.Recovery,
+				middleware.RateLimit,
 			)
-			log.Printf("Warning: No specific middleware defined for service %s", svc.Name)
 		}
 
 		handlers[svc.Name] = finalHandler
@@ -83,8 +75,8 @@ func main() {
 		http.Handle(route, handler)
 	}
 
+	// Start gateway on config port
 	addr := ":" + fmt.Sprint(cfg.Port)
-
 	log.Println("Gateway running on", addr)
 	log.Fatal(http.ListenAndServe(addr, nil))
 }
