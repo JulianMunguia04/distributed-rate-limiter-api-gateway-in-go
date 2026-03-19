@@ -54,7 +54,7 @@ func main() {
 	}
 }
 
-//go run server.go <port number>
+//go run server.go <port number> <delay>
 
 // or go build -o server.exe server.go
 // then
