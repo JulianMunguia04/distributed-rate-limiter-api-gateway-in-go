@@ -1,6 +1,7 @@
-package proxy
+package circuitbreaker
 
 import (
+	"log"
 	"sync"
 	"time"
 )
@@ -16,6 +17,8 @@ const (
 type CircuitBreaker struct {
 	mu sync.Mutex
 
+	name string
+
 	failures  int
 	successes int
 
@@ -27,8 +30,9 @@ type CircuitBreaker struct {
 	lastFailureTime time.Time
 }
 
-func NewCircuitBreaker() *CircuitBreaker {
+func NewCircuitBreaker(name string) *CircuitBreaker {
 	return &CircuitBreaker{
+		name:             name,
 		state:            Closed,
 		failureThreshold: 3,
 		resetTimeout:     5 * time.Second,
@@ -44,6 +48,7 @@ func (cb *CircuitBreaker) CanRequest() bool {
 	case Open:
 		if time.Since(cb.lastFailureTime) > cb.resetTimeout {
 			cb.state = HalfOpen
+			log.Printf("[CIRCUIT BREAKER] %s → HALF-OPEN\n", cb.name)
 			return true
 		}
 		return false
@@ -80,8 +85,9 @@ func (cb *CircuitBreaker) OnFailure() {
 	cb.failures++
 	cb.lastFailureTime = time.Now()
 
-	if cb.failures >= cb.failureThreshold {
+	if cb.failures >= cb.failureThreshold && cb.state != Open {
 		cb.state = Open
+		log.Printf("[CIRCUIT BREAKER] %s → OPEN\n", cb.name)
 	}
 }
 
@@ -89,4 +95,6 @@ func (cb *CircuitBreaker) reset() {
 	cb.failures = 0
 	cb.successes = 0
 	cb.state = Closed
+
+	log.Printf("[CIRCUIT BREAKER] %s → CLOSED\n", cb.name)
 }
