@@ -42,6 +42,9 @@ func main() {
 	for _, svc := range cfg.Services {
 
 		lb := loadbalancer.NewLeastConnections(svc.Backends)
+
+		// Start Health Checks
+		go loadbalancer.HealthCheck(lb.GetBackends())
 		handler := proxy.ProxyRequest(lb)
 
 		var finalHandler http.Handler

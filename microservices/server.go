@@ -47,6 +47,11 @@ func main() {
 		fmt.Fprintf(w, "Running on port %s", port)
 	})
 
+	//Test health check
+	http.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	})
+
 	log.Println("Starting server on port", port, "with delay", delaySeconds, "seconds")
 
 	err = http.ListenAndServe(":"+port, nil)

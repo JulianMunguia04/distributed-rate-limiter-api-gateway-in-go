@@ -1,8 +1,9 @@
 package loadbalancer
 
 import (
+	"log"
+	"math"
 	"net/url"
-	"sync/atomic"
 
 	"gateway/internal/circuitbreaker"
 )
@@ -11,20 +12,20 @@ type LeastConnections struct {
 	backends []*Backend
 }
 
-func NewLeastConnections(addresses []string) *LeastConnections {
-
+func NewLeastConnections(urls []string) *LeastConnections {
 	var backends []*Backend
 
-	for _, addr := range addresses {
-		parsed, err := url.Parse(addr)
+	for _, rawURL := range urls {
+		u, err := url.Parse(rawURL)
 		if err != nil {
+			log.Println("Invalid backend URL:", rawURL)
 			continue
 		}
 
 		backends = append(backends, &Backend{
-			URL:         parsed,
-			Connections: 0,
-			CB:          circuitbreaker.NewCircuitBreaker(parsed.String()),
+			URL:   u,
+			Alive: true,
+			CB:    circuitbreaker.NewCircuitBreaker(rawURL),
 		})
 	}
 
@@ -33,31 +34,33 @@ func NewLeastConnections(addresses []string) *LeastConnections {
 	}
 }
 
+func (lb *LeastConnections) GetBackends() []*Backend {
+	return lb.backends
+}
+
 func (lb *LeastConnections) NextBackend() *Backend {
-
 	var selected *Backend
+	min := int64(math.MaxInt64)
 
-	for _, backend := range lb.backends {
+	for _, b := range lb.backends {
 
-		// 🔴 skip unhealthy backends
-		if backend.CB != nil && !backend.CB.CanRequest() {
+		// Skip dead backends
+		if !b.IsAlive() {
 			continue
 		}
 
-		if selected == nil ||
-			atomic.LoadInt64(&backend.Connections) <
-				atomic.LoadInt64(&selected.Connections) {
+		// Skip circuit breaker blocked
+		if b.CB != nil && !b.CB.CanRequest() {
+			continue
+		}
 
-			selected = backend
+		conn := b.GetConnections()
+
+		if conn < min {
+			min = conn
+			selected = b
 		}
 	}
-
-	// fallback if all are open
-	if selected == nil {
-		selected = lb.backends[0]
-	}
-
-	atomic.AddInt64(&selected.Connections, 1)
 
 	return selected
 }
