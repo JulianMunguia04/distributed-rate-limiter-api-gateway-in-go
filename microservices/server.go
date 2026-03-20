@@ -40,10 +40,11 @@ func main() {
 
 		mu.Lock()
 		counter++
-		current := counter
+		//current := counter
 		mu.Unlock()
 
-		fmt.Fprintf(w, "Instance running on port %s | Count: %d | Delay: %ds\n", port, current, delaySeconds)
+		//fmt.Fprintf(w, "Instance running on port %s | Count: %d | Delay: %ds\n", port, current, delaySeconds)
+		fmt.Fprintf(w, "Running on port %s", port)
 	})
 
 	log.Println("Starting server on port", port, "with delay", delaySeconds, "seconds")

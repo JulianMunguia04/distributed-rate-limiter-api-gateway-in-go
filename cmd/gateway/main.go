@@ -1,9 +1,13 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"net/http"
+	"os"
+	"os/signal"
+	"time"
 
 	"gateway/internal/config"
 	"gateway/internal/loadbalancer"
@@ -15,11 +19,14 @@ import (
 )
 
 func main() {
+
 	// Metrics endpoint
-	http.Handle("/metrics", promhttp.Handler())
+	mux := http.NewServeMux()
+	mux.Handle("/metrics", promhttp.Handler())
 
 	// Load .env
-	if err := godotenv.Load(".env"); err != nil {
+	err := godotenv.Load(".env")
+	if err != nil {
 		log.Println("Error loading .env:", err)
 	} else {
 		log.Println(".env loaded successfully")
@@ -31,22 +38,15 @@ func main() {
 		log.Fatalf("failed to load config: %v", err)
 	}
 
-	handlers := make(map[string]http.Handler)
-
-	// Loop through services
+	// Dynamic services
 	for _, svc := range cfg.Services {
 
-		// Create load balancer per service
 		lb := loadbalancer.NewLeastConnections(svc.Backends)
-
-		// Reverse proxy handler
 		handler := proxy.ProxyRequest(lb)
 
 		var finalHandler http.Handler
 
-		// Middleware chain (dynamic based on auth_required)
-		switch svc.AuthRequired {
-		case true:
+		if svc.AuthRequired {
 			finalHandler = middleware.Chain(
 				handler,
 				middleware.Metrics,
@@ -55,7 +55,7 @@ func main() {
 				middleware.APIKeyAuth,
 				middleware.RateLimit,
 			)
-		default:
+		} else {
 			finalHandler = middleware.Chain(
 				handler,
 				middleware.Metrics,
@@ -65,18 +65,40 @@ func main() {
 			)
 		}
 
-		handlers[svc.Name] = finalHandler
-	}
-
-	// Register routes dynamically
-	for name, handler := range handlers {
-		route := "/" + name + "/"
+		route := "/" + svc.Name + "/"
 		log.Println("Registering route:", route)
-		http.Handle(route, handler)
+		mux.Handle(route, finalHandler)
 	}
 
-	// Start gateway on config port
-	addr := ":" + fmt.Sprint(cfg.Port)
-	log.Println("Gateway running on", addr)
-	log.Fatal(http.ListenAndServe(addr, nil))
+	// Create server (IMPORTANT for graceful shutdown)
+	server := &http.Server{
+		Addr:    ":" + fmt.Sprint(cfg.Port),
+		Handler: mux,
+	}
+
+	// Start server in goroutine
+	go func() {
+		log.Println("Gateway running on", server.Addr)
+		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			log.Fatalf("ListenAndServe(): %v", err)
+		}
+	}()
+
+	// Listen for shutdown signals
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, os.Interrupt) // Ctrl+C (SIGINT)
+	// NOTE: os.Kill cannot be caught → don't use it
+
+	sig := <-quit
+	log.Printf("Signal %v received. Shutting down...", sig)
+
+	// Graceful shutdown with timeout
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	if err := server.Shutdown(ctx); err != nil {
+		log.Fatalf("Server forced to shutdown: %v", err)
+	}
+
+	log.Println("Gateway exited gracefully")
 }
