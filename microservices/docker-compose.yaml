@@ -1,0 +1,40 @@
+services:
+  backend1:
+    build: .
+    image: microservices-backend1
+    command: ["./server", "5000", "1"]
+    ports:
+      - "5001:5000"
+    networks:
+      - app-network
+
+  backend2:
+    build: .
+    image: microservices-backend2
+    command: ["./server", "5000", "3"]
+    ports:
+      - "5002:5000"
+    networks:
+      - app-network
+
+  app2_backend1:
+    build: .
+    image: microservices-app2-backend1
+    command: ["./server", "3000", "1"]
+    ports:
+      - "3001:3000"
+    networks:
+      - app-network
+
+  app2_backend2:
+    build: .
+    image: microservices-app2-backend2
+    command: ["./server", "3000", "3"]
+    ports:
+      - "3002:3000"
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge

@@ -1,0 +1,50 @@
+services:
+  gateway:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    ports:
+      - "8081:8080"
+    depends_on:
+      - redis
+      - backend1
+      - backend2
+    networks:
+      - app-network
+
+  backend1:
+    build:
+      context: ../microservices
+    command: ["./server", "5000", "0"]
+    networks:
+      - app-network
+
+  backend2:
+    build:
+      context: ../microservices
+    command: ["./server", "5000", "0"]
+    networks:
+      - app-network
+
+  app2_backend1:
+    build:
+      context: ../microservices
+    command: ["./server", "3000", "0"]
+    networks:
+      - app-network
+
+  app2_backend2:
+    build:
+      context: ../microservices
+    command: ["./server", "3000", "0"]
+    networks:
+      - app-network
+
+  redis:
+    image: redis:7-alpine
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge

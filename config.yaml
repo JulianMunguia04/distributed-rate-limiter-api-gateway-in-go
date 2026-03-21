@@ -3,14 +3,14 @@ port: 8080
 services:
   - name: app1
     backends:
-      - http://localhost:5000
-      - http://localhost:5001
+      - http://backend1:5000
+      - http://backend2:5000
     auth_required: false
 
   - name: app2
     backends:
-      - http://localhost:3000
-      - http://localhost:3001
+      - http://app2_backend1:3000
+      - http://app2_backend2:3000
     auth_required: true
 
 rate_limit:
