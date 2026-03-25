@@ -1,4 +1,7 @@
 services:
+  # =====================
+  # API Gateway Service
+  # =====================
   gateway:
     build:
       context: ..
@@ -12,6 +15,9 @@ services:
     networks:
       - app-network
 
+  # =====================
+  # Backend Services (App 1)
+  # =====================
   backend1:
     build:
       context: ../microservices
@@ -19,13 +25,16 @@ services:
     networks:
       - app-network
 
+  # =====================
+  # Backend Services (App 2)
+  # =====================
   backend2:
     build:
       context: ../microservices
     command: ["./server", "5000", "0"]
     networks:
       - app-network
-
+  
   app2_backend1:
     build:
       context: ../microservices
@@ -40,11 +49,17 @@ services:
     networks:
       - app-network
 
+  # =====================
+  # Cache Layer (Redis)
+  # =====================
   redis:
     image: redis:7-alpine
     networks:
       - app-network
 
+# =====================
+# Network Configuration
+# =====================
 networks:
   app-network:
     driver: bridge
