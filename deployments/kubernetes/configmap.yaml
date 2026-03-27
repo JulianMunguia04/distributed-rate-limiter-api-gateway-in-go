@@ -1,0 +1,25 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: gateway-config
+  namespace: api-gateway
+data:
+  config.yaml: |
+    port: 8080
+    
+    services:
+      - name: app1
+        backends:
+          - http://app1-backend-1:5000
+          - http://app1-backend-2:5000
+        auth_required: false
+    
+      - name: app2
+        backends:
+          - http://app2-backend-1:3000
+          - http://app2-backend-2:3000
+        auth_required: true
+    
+    rate_limit:
+      requests: 100
+      per_seconds: 1

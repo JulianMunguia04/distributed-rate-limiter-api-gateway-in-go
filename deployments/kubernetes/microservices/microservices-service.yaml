@@ -1,0 +1,51 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: app1-backend-1
+  namespace: api-gateway
+spec:
+  selector:
+    app: app1
+    instance: backend-1
+  ports:
+  - port: 5000
+    targetPort: 5000
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: app1-backend-2
+  namespace: api-gateway
+spec:
+  selector:
+    app: app1
+    instance: backend-2
+  ports:
+  - port: 5000
+    targetPort: 5000
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: app2-backend-1
+  namespace: api-gateway
+spec:
+  selector:
+    app: app2
+    instance: backend-1
+  ports:
+  - port: 3000
+    targetPort: 3000
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: app2-backend-2
+  namespace: api-gateway
+spec:
+  selector:
+    app: app2
+    instance: backend-2
+  ports:
+  - port: 3000
+    targetPort: 3000
