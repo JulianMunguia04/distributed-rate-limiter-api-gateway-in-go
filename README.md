@@ -59,25 +59,71 @@ This design mirrors production-grade API gateways used in modern microservice ar
 
 ---
 
-### 🏗Folder Structure
+### 🏗 Folder Structure
 
 ```
-project_root/
+go-api-gateway/
 │
-├── data/
-│   └── maestro-v3.0.0/  # Place the extracted MAESTRO dataset here
+├── .env
+├── .gitignore
+├── config.yaml
+├── Dockerfile
+├── gateway.exe
+├── go.mod
+├── go.sum
+├── LICENSE
+├── README.md
 │
-├── notebooks/           # Jupyter notebooks for analysis
+├── cmd/
+│   └── gateway/
+│       └── main.go
 │
-├── src/                 # Source code (models, utilities, etc.)
+├── deployments/
+│   └── docker-compose.yaml
 │
-├── wav_to_midi.py       # Use model to convert audios to mid
+├── internal/
+│   ├── circuitbreaker/
+│   │   └── circuit_breaker.go
+│   │
+│   ├── config/
+│   │   └── config.go
+│   │
+│   ├── loadbalancer/
+│   │   ├── backend.go
+│   │   ├── health.go
+│   │   ├── interface.go
+│   │   ├── least_connections.go
+│   │   └── round_robin.go
+│   │
+│   ├── metrics/
+│   │   └── prometheus.go
+│   │
+│   ├── middleware/
+│   │   ├── auth.go
+│   │   ├── logging.go
+│   │   ├── metrics.go
+│   │   ├── middleware.go
+│   │   ├── ratelimit.go
+│   │   └── recovery.go
+│   │
+│   ├── proxy/
+│   │   └── reverse_proxy.go
+│   │
+│   └── ratelimiter/
+│       ├── redis_limiter.go
+│       └── token_bucket.go
 │
-├── .env                 # Environment variables (see below)
+├── microservices/
+│   ├── docker-compose.yaml
+│   ├── Dockerfile
+│   ├── go.mod
+│   ├── server.exe
+│   └── server.go
 │
-├── requirements.txt     # Python dependencies
+├── Readme-Photos/
+│   └── System-Design.png
 │
-└── README.md
+└── tests/
 ```
 
 ## ⚙️ Configuration
