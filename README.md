@@ -20,6 +20,29 @@ This project implements reverse proxying, pluggable load balancing, distributed 
 
 ---
 
+## 🧩 System Design
+
+This diagram represents the high-level architecture of the distributed API Gateway, including middleware flow, load balancing, rate limiting, and backend services.
+
+<p align="center">
+  <img src="./Readme-Photos/System-Design.png" alt="System Design Diagram" width="800"/>
+</p>
+
+### Overview
+
+- Clients send requests to the API Gateway
+- Requests pass through a middleware chain:
+  - Metrics → Logging → Recovery → Auth → Rate Limit
+- The gateway forwards requests using a reverse proxy
+- Load balancer selects the optimal backend (Round Robin / Least Connections)
+- Redis is used for distributed rate limiting across multiple gateway instances
+- Prometheus scrapes metrics from the `/metrics` endpoint
+- Circuit breakers and health checks ensure fault tolerance and resilience
+
+This design mirrors production-grade API gateways used in modern microservice architectures.
+
+---
+
 ## 🚀 Features
 
 - Reverse proxy with header propagation & timeouts  
