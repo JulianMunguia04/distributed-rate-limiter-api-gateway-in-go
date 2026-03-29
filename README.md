@@ -15,7 +15,6 @@ This project implements reverse proxying, pluggable load balancing, distributed 
 ![YAML](https://img.shields.io/badge/YAML-000000?logo=yaml&logoColor=white&style=for-the-badge)
 ![Linux](https://img.shields.io/badge/Linux-FCC624?logo=linux&logoColor=black&style=for-the-badge)
 ![Git](https://img.shields.io/badge/Git-F05032?logo=git&logoColor=white&style=for-the-badge)
-![Kubernetes](https://img.shields.io/badge/Kubernetes-326CE5?logo=kubernetes&logoColor=white&style=for-the-badge)
 
 
 ---
