@@ -2,7 +2,7 @@
 
 A high-performance, production-style API Gateway built in Go, designed to explore distributed systems, concurrency, and scalability.
 
-This project implements reverse proxying, pluggable load balancing, distributed rate limiting with Redis, middleware architecture, observability, and fault tolerance — all running in a containerized environment.
+This project implements reverse proxying, pluggable load balancing, distributed rate limiting with Redis, middleware architecture, observability, and fault tolerance — all running in a containerized environment using docker.
 
 ---
 
